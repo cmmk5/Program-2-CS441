@@ -1,1 +1,3 @@
-# Program-2-CS441
+# Chris Martin
+# CS441
+# Program-2
