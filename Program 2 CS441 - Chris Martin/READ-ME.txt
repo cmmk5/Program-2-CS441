@@ -1,0 +1,6 @@
+Data files for program 2: 
+file1.txt:  Should parse OK. 
+file2.txt: Should fail, parse error, missing semicolon on line 3 
+file3.txt: should fail, parse error, missing endif 
+file4.txt: should fail, scan error, illegal character 
+

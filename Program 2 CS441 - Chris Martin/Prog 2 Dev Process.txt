@@ -1,0 +1,15 @@
+I start off the program with a parse function that will take in the file and display "Accept" and "Parse Tree:" or give you the "Syntax error:"
+
+Next i created a function trim-whitespace, that creates the empty spaces characters as null so they are trimmed out.
+
+Then created a parse-program function that defines values to characters, including the trim-whitespace characters that are null.
+
+The parse-list function that give values to the characters and tells the program the remaining characters.
+
+I used ChatGPT to help me with the parse-stmt function that actual reads the statements and applies the values based on the grammar notation.
+
+And then the parse-num and parse-id functions, make sure that number characters are numerical and id characters are alphabetical.
+
+Then lastly, I used ChatGPT to help me with the parse-etail function that created the etail of the parser based on the grammar of the statements. 
+
+ChatGPT really helped me with the  parse-stmt function, but I feel like I could have figured the etail part out by myself.

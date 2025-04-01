@@ -1,0 +1,70 @@
+#lang racket
+
+(define (parse filename)
+  (define input (with-input-from-file filename read-string))
+  (define-values (result remaining) (parse-program (string->list input)))
+  (if (and result (null? remaining))
+      "Accept"
+      (string-append "Syntax error: " (if (null? remaining) "end of input" (list->string remaining)))))
+
+(define (parse-program chars)
+  (define-values (stmt-list-result remaining) (parse-stmt-list chars))
+  (if (and stmt-list-result (not (null? remaining)) (char=? (car remaining) #\$) (char=? (cadr remaining) #\$))
+      (values stmt-list-result (cddr remaining))
+      (values #f chars)))
+
+(define (parse-stmt-list chars)
+  (if (null? chars)
+      (values '() chars)
+      (let-values ([(stmt-result remaining) (parse-stmt chars)])
+        (if stmt-result
+            (let-values ([(stmt-list-result remaining2) (parse-stmt-list remaining)])
+              (values (cons stmt-result stmt-list-result) remaining2))
+            (values '() chars)))))
+
+(define (parse-stmt chars)
+  (if (null? chars)
+      (values #f chars)
+      (let ((first (car chars)))
+        (cond
+          [(char-alphabetic? first)
+           (let-values ([(expr-result remaining) (parse-expr (cdr chars))])
+             (if (and expr-result (not (null? remaining)) (char=? (car remaining) #\;))
+                 (values (list 'assign first expr-result) (cdr remaining))
+                 (values #f chars)))]
+          [(char=? first #\i) ; Assuming "if" starts with i
+           (let-values ([(expr-result remaining) (parse-expr (cdr chars))])
+             (if expr-result
+                 (let-values ([(stmt-list-result remaining2) (parse-stmt-list remaining)])
+                   (if (and stmt-list-result (not (null? remaining2)) (char=? (car remaining2) #\e))
+                       (values (list 'if expr-result stmt-list-result) (cdr remaining2))
+                       (values #f chars)))
+                 (values #f chars)))]
+          [(char=? first #\r) ; Assuming "read" starts with r
+           (values (list 'read (cdr chars)) (cddr chars))]
+          [(char=? first #\w) ; Assuming "write" starts with w
+           (let-values ([(expr-result remaining) (parse-expr (cdr chars))])
+             (if expr-result
+                 (values (list 'write expr-result) remaining)
+                 (values #f chars)))]
+          [else (values #f chars)]))))
+
+(define (parse-expr chars)
+  (if (null? chars)
+      (values #f chars)
+      (let ((first (car chars)))
+        (if (or (char-alphabetic? first) (char-numeric? first))
+            (let-values ([(etail-result remaining) (parse-etail (cdr chars))])
+              (values (if etail-result (list 'expr first etail-result) first) remaining))
+            (values #f chars)))))
+
+(define (parse-etail chars)
+  (if (null? chars)
+      (values '() chars)
+      (let ((first (car chars)))
+        (if (or (char=? first #\+) (char=? first #\-))
+            (let-values ([(expr-result remaining) (parse-expr (cdr chars))])
+              (if expr-result
+                  (values (list first expr-result) remaining)
+                  (values #f chars)))
+            (values '() chars)))))
